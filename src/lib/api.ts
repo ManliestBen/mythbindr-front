@@ -28,3 +28,6 @@ export const apiPatch = <T>(path: string, body?: unknown) =>
     method: 'PATCH',
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+
+export const apiDelete = <T>(path: string) =>
+  request<T>(path, { method: 'DELETE' });

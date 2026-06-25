@@ -1,12 +1,19 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { AuthProvider, useAuth } from './auth/AuthProvider';
+import { ActiveCampaignProvider } from './campaign/ActiveCampaignProvider';
 import AuthThemeSync from './components/AuthThemeSync';
 import AuthScreen from './auth/AuthScreen';
 import AppShell from './components/AppShell';
-import Dashboard from './pages/Dashboard';
+import Campaigns from './pages/Campaigns';
+import CampaignHome from './pages/CampaignHome';
 import Settings from './pages/Settings';
 import Placeholder from './pages/Placeholder';
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } },
+});
 
 function Splash() {
   return (
@@ -22,24 +29,33 @@ function Gate() {
   if (!user) return <AuthScreen />;
   return (
     <BrowserRouter>
-      <Routes>
-        <Route element={<AppShell />}>
-          <Route index element={<Dashboard />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="*" element={<Placeholder />} />
-        </Route>
-      </Routes>
+      <ActiveCampaignProvider>
+        <Routes>
+          <Route element={<AppShell />}>
+            <Route index element={<Navigate to="/campaigns" replace />} />
+            <Route path="campaigns" element={<Campaigns />} />
+            <Route path="campaigns/:cid" element={<CampaignHome />} />
+            {/* Element list + editor land in Slice 1; placeholder until then. */}
+            <Route path="campaigns/:cid/:type" element={<Placeholder />} />
+            <Route path="campaigns/:cid/:type/:elementId" element={<Placeholder />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="*" element={<Placeholder />} />
+          </Route>
+        </Routes>
+      </ActiveCampaignProvider>
     </BrowserRouter>
   );
 }
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AuthThemeSync />
-        <Gate />
-      </AuthProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <AuthThemeSync />
+          <Gate />
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
