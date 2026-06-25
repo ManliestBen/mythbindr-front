@@ -8,6 +8,8 @@ import {
   type CampaignFormValues,
 } from '../data/campaigns';
 import CampaignForm from '../components/CampaignForm';
+import { useDashboard } from '../data/dashboard';
+import { ELEMENT_TYPE_BY_SEGMENT, segmentForType } from '../data/elementTypes';
 
 const ELEMENT_TYPES = [
   { type: 'npcs', label: 'NPCs' },
@@ -23,6 +25,7 @@ export default function CampaignHome() {
   const update = useUpdateCampaign(cid ?? '');
   const del = useDeleteCampaign();
   const duplicate = useDuplicateCampaign();
+  const dash = useDashboard(cid ?? '');
   const [editing, setEditing] = useState(false);
   const navigate = useNavigate();
 
@@ -111,17 +114,24 @@ export default function CampaignHome() {
         </div>
       </div>
 
-      {/* Element-type hub. Counts go live in Slice 5 (dashboard aggregation). */}
+      {/* Element-type hub with live counts (dashboard aggregation). */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
-        {ELEMENT_TYPES.map((e) => (
-          <Link
-            key={e.type}
-            to={`/campaigns/${campaign.id}/${e.type}`}
-            className="rounded-xl border border-app-border bg-app-surface p-4 text-center hover:border-fg-muted"
-          >
-            <div className="text-[11px] uppercase tracking-wide text-fg-muted">{e.label}</div>
-          </Link>
-        ))}
+        {ELEMENT_TYPES.map((e) => {
+          const backendType = ELEMENT_TYPE_BY_SEGMENT[e.type]?.type ?? '';
+          const count = dash.data?.counts[backendType] ?? 0;
+          return (
+            <Link
+              key={e.type}
+              to={`/campaigns/${campaign.id}/${e.type}`}
+              className="rounded-xl border border-app-border bg-app-surface p-4 text-center hover:border-fg-muted"
+            >
+              <div className="font-heading text-2xl font-bold text-brand">{count}</div>
+              <div className="mt-1 text-[10px] uppercase tracking-wide text-fg-muted">
+                {e.label}
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
       {campaign.storySoFar && (
@@ -130,6 +140,34 @@ export default function CampaignHome() {
           <p className="mt-2 whitespace-pre-wrap text-sm text-fg-muted">
             {campaign.storySoFar}
           </p>
+        </div>
+      )}
+
+      {dash.data && dash.data.recent.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-sm font-bold">Recent edits</h3>
+          <ul className="mt-2 space-y-1">
+            {dash.data.recent.map((r) => {
+              const seg = segmentForType(r.type);
+              return (
+                <li key={r.id} className="flex items-center gap-2 text-sm">
+                  {seg ? (
+                    <Link
+                      to={`/campaigns/${campaign.id}/${seg}/${r.id}`}
+                      className="text-fg-muted hover:text-brand"
+                    >
+                      {r.name}
+                    </Link>
+                  ) : (
+                    <span className="text-fg-muted">{r.name}</span>
+                  )}
+                  <span className="text-[10px] uppercase tracking-wide text-fg-muted">
+                    {r.type}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       )}
     </div>
