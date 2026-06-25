@@ -59,7 +59,11 @@ export function useCreateCampaign() {
 export function useUpdateCampaign(cid: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: Partial<CampaignFormValues>) =>
+    mutationFn: (
+      input: Partial<CampaignFormValues> & {
+        moodSlots?: { label: string; spotifyUri: string }[];
+      },
+    ) =>
       apiPatch<{ campaign: Campaign }>(`/api/campaigns/${cid}`, input).then(
         (r) => r.campaign,
       ),

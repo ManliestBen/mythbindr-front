@@ -12,6 +12,7 @@ import CombatantCard from '../components/session/CombatantCard';
 import AddCombatant from '../components/session/AddCombatant';
 import DiceRoller from '../components/session/DiceRoller';
 import RollLog from '../components/session/RollLog';
+import SpotifyPlayer from '../components/session/SpotifyPlayer';
 import { useAuth } from '../auth/AuthProvider';
 
 function sortByInit(cs: Combatant[]): Combatant[] {
@@ -197,6 +198,7 @@ export default function RunSession() {
         </div>
 
         <div className="space-y-4">
+          {user?.isAdmin && <SpotifyPlayer campaignId={cid ?? ''} />}
           <DiceRoller onRoll={(t) => addLog('roll', t)} />
           <RollLog log={session.log} onNote={(t) => addLog('note', t)} />
         </div>
