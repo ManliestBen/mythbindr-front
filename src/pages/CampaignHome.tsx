@@ -9,6 +9,7 @@ import {
 } from '../data/campaigns';
 import CampaignForm from '../components/CampaignForm';
 import { useDashboard } from '../data/dashboard';
+import { useActivity } from '../data/activity';
 import { ELEMENT_TYPE_BY_SEGMENT, segmentForType } from '../data/elementTypes';
 
 const ELEMENT_TYPES = [
@@ -26,6 +27,7 @@ export default function CampaignHome() {
   const del = useDeleteCampaign();
   const duplicate = useDuplicateCampaign();
   const dash = useDashboard(cid ?? '');
+  const activity = useActivity(cid ?? '');
   const [editing, setEditing] = useState(false);
   const navigate = useNavigate();
 
@@ -91,6 +93,12 @@ export default function CampaignHome() {
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
+          <Link
+            to={`/campaigns/${campaign.id}/members`}
+            className="rounded-lg border border-app-border px-3 py-1.5 text-sm text-fg-muted hover:text-fg"
+          >
+            Members
+          </Link>
           <button
             onClick={() => setEditing(true)}
             className="rounded-lg border border-app-border px-3 py-1.5 text-sm text-fg-muted hover:text-fg"
@@ -143,27 +151,28 @@ export default function CampaignHome() {
         </div>
       )}
 
-      {dash.data && dash.data.recent.length > 0 && (
+      {activity.data && activity.data.length > 0 && (
         <div className="mt-8">
-          <h3 className="text-sm font-bold">Recent edits</h3>
+          <h3 className="text-sm font-bold">Activity</h3>
           <ul className="mt-2 space-y-1">
-            {dash.data.recent.map((r) => {
-              const seg = segmentForType(r.type);
+            {activity.data.map((a) => {
+              const seg = a.elementType ? segmentForType(a.elementType) : undefined;
               return (
-                <li key={r.id} className="flex items-center gap-2 text-sm">
-                  {seg ? (
-                    <Link
-                      to={`/campaigns/${campaign.id}/${seg}/${r.id}`}
-                      className="text-fg-muted hover:text-brand"
-                    >
-                      {r.name}
-                    </Link>
-                  ) : (
-                    <span className="text-fg-muted">{r.name}</span>
-                  )}
-                  <span className="text-[10px] uppercase tracking-wide text-fg-muted">
-                    {r.type}
+                <li key={a.id} className="flex flex-wrap items-center gap-1.5 text-sm text-fg-muted">
+                  <span>
+                    <strong className="font-medium text-fg">{a.userName}</strong> {a.action}
                   </span>
+                  {a.elementName &&
+                    (seg && a.elementId ? (
+                      <Link
+                        to={`/campaigns/${campaign.id}/${seg}/${a.elementId}`}
+                        className="hover:text-brand"
+                      >
+                        {a.elementName}
+                      </Link>
+                    ) : (
+                      <span>{a.elementName}</span>
+                    ))}
                 </li>
               );
             })}
