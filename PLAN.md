@@ -343,5 +343,19 @@ dashboard at deploy — Spotify (§5.12a) needs the prod callback URL added, and
   repos**: usernameless register/login/logout, sessions in Mongo, `User` + `Credential`
   models, first-user-admin bootstrap, theme persisted to the user profile.
 
-**Next — Phase 1 (Core building):** campaigns + core element types (CRUD + cross-linking).
-See §3 roadmap.
+**Phase 1 — Core building** ✅ (complete)
+- ✅ Campaigns: CRUD, soft-delete/restore trash, duplicate, owner `Membership` +
+  `requireCampaignAccess` role gate (owner-only now, editor/viewer-ready), campaign switcher.
+- ✅ Polymorphic `Element` model (single collection: `type` enum + shared fields + flexible
+  `data`) with a generic CRUD controller validated by a per-type zod registry.
+- ✅ All MVP element types: **NPC, Location, Encounter, Item, Note** (config-driven forms).
+- ✅ Rich text via **TipTap** (ProseMirror JSON) with **@mention cross-linking**, server-side
+  mention→`links` extraction, and a "Linked from" **backlinks** panel.
+- ✅ Typed **relationships** (useFieldArray), soft-delete/trash per element, server-derived
+  `bodyText` search index.
+- ✅ Campaign **dashboard** (live counts by type + recent edits) and **global search**.
+- Stack added: `@tanstack/react-query`, `react-hook-form` + zod, TipTap (front); `zod` (back).
+
+**Next — Phase 2 (Collaboration & real-time):** membership invites + editor/viewer roles,
+real-time co-editing (Socket.IO + Yjs on the existing TipTap editor; `Element.docState`
+reserved), presence, and the player-facing share view. See §3 roadmap and §5.11/§5.11a.
