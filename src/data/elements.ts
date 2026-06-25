@@ -25,6 +25,7 @@ export interface ElementT {
   playerVisible: boolean;
   secrets: string;
   soundtrack: { spotifyUri: string; name: string } | null;
+  version: number;
   deletedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -90,7 +91,7 @@ export function useCreateElement(cid: string) {
 export function useUpdateElement(cid: string, id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: Partial<ElementInput>) =>
+    mutationFn: (input: Partial<ElementInput> & { expectedVersion?: number }) =>
       apiPatch<{ element: ElementT }>(
         `/api/campaigns/${cid}/elements/${id}`,
         input,

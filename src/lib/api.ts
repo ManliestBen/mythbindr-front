@@ -10,7 +10,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!res.ok) {
     const message =
       (data as { error?: string })?.error ?? `Request failed (${res.status})`;
-    throw new Error(message);
+    const err = new Error(message) as Error & { status?: number };
+    err.status = res.status;
+    throw err;
   }
   return data as T;
 }

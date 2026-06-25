@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { usePresence, type Participant } from '../realtime/usePresence';
 import { ELEMENT_TYPE_BY_SEGMENT, segmentForType } from '../data/elementTypes';
 import {
   useBacklinks,
@@ -20,6 +22,8 @@ export default function ElementEditor() {
   const update = useUpdateElement(cid ?? '', elementId ?? '');
   const del = useDeleteElement(cid ?? '');
   const backlinks = useBacklinks(cid ?? '', isNew ? undefined : elementId);
+  const participants = usePresence(isNew ? undefined : elementId);
+  const [conflict, setConflict] = useState(false);
 
   const backTo = `/campaigns/${cid}/${seg}`;
 
@@ -40,7 +44,15 @@ export default function ElementEditor() {
         { onSuccess: () => navigate(backTo) },
       );
     } else {
-      update.mutate(r, { onSuccess: () => navigate(backTo) });
+      update.mutate(
+        { ...r, expectedVersion: element?.version },
+        {
+          onSuccess: () => navigate(backTo),
+          onError: (err) => {
+            if ((err as { status?: number }).status === 409) setConflict(true);
+          },
+        },
+      );
     }
   };
 
@@ -58,16 +70,31 @@ export default function ElementEditor() {
         <h1 className="text-2xl font-bold">
           {isNew ? `New ${cfg.label}` : `Edit ${cfg.label}`}
         </h1>
-        {!isNew && (
-          <button
-            onClick={onDelete}
-            disabled={del.isPending}
-            className="rounded-lg border border-app-border px-3 py-1.5 text-sm text-red-400 hover:text-red-300 disabled:opacity-50"
-          >
-            Delete
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          <PresenceAvatars participants={participants} />
+          {!isNew && (
+            <button
+              onClick={onDelete}
+              disabled={del.isPending}
+              className="rounded-lg border border-app-border px-3 py-1.5 text-sm text-red-400 hover:text-red-300 disabled:opacity-50"
+            >
+              Delete
+            </button>
+          )}
+        </div>
       </div>
+
+      {conflict && (
+        <div className="mt-4 flex items-center justify-between gap-4 rounded-lg border border-amber-600/40 px-3 py-2 text-sm text-amber-400">
+          <span>This element was changed by someone else.</span>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-lg border border-app-border px-2 py-1 text-xs text-fg-muted hover:text-fg"
+          >
+            Reload
+          </button>
+        </div>
+      )}
 
       <div className="mt-5 rounded-xl border border-app-border bg-app-surface p-5">
         <ElementForm
@@ -125,6 +152,23 @@ export default function ElementEditor() {
           </ul>
         </div>
       )}
+    </div>
+  );
+}
+
+function PresenceAvatars({ participants }: { participants: Participant[] }) {
+  if (participants.length <= 1) return null; // only me here
+  return (
+    <div className="flex -space-x-2">
+      {participants.map((p) => (
+        <span
+          key={p.userId}
+          title={`${p.displayName} is here`}
+          className="grid h-7 w-7 place-items-center rounded-full border border-app-surface bg-app-surface2 text-[10px] font-semibold text-fg"
+        >
+          {p.displayName.slice(0, 2).toUpperCase()}
+        </span>
+      ))}
     </div>
   );
 }
