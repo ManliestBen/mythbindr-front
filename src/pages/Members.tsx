@@ -10,6 +10,7 @@ import {
   useRevokeInvite,
   type Role,
 } from '../data/members';
+import { useCreateShareLink, useRevokeShareLink, useShareLinks } from '../data/share';
 
 export default function Members() {
   const { cid } = useParams();
@@ -20,6 +21,9 @@ export default function Members() {
   const revokeInvite = useRevokeInvite(cid ?? '');
   const changeRole = useChangeRole(cid ?? '');
   const removeMember = useRemoveMember(cid ?? '');
+  const shareLinks = useShareLinks(cid ?? '');
+  const createShareLink = useCreateShareLink(cid ?? '');
+  const revokeShareLink = useRevokeShareLink(cid ?? '');
   const [copied, setCopied] = useState<string | null>(null);
 
   const myRole = members.data?.find((m) => m.userId === user?.id)?.role;
@@ -138,6 +142,50 @@ export default function Members() {
             ))}
             {invites.data?.length === 0 && (
               <p className="text-sm text-fg-muted">No pending invites.</p>
+            )}
+          </div>
+        </section>
+      )}
+
+      {isOwner && (
+        <section className="mt-8">
+          <h2 className="font-heading text-lg font-bold">Share with players</h2>
+          <p className="mt-1 text-sm text-fg-muted">
+            A public read-only link showing only elements marked “visible in the player share
+            view”. GM secrets are never included.
+          </p>
+          <button
+            onClick={() => createShareLink.mutate()}
+            disabled={createShareLink.isPending}
+            className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-app-bg hover:bg-brand-bright disabled:opacity-50"
+          >
+            Create share link
+          </button>
+          <div className="mt-4 space-y-2">
+            {shareLinks.data?.map((l) => (
+              <div
+                key={l.id}
+                className="flex items-center justify-between gap-2 rounded-xl border border-app-border bg-app-surface p-3"
+              >
+                <div className="truncate text-xs text-fg-muted">{l.url}</div>
+                <div className="flex shrink-0 gap-2">
+                  <button
+                    onClick={() => copy(l.url, l.id)}
+                    className="rounded-lg border border-app-border px-2 py-1 text-xs text-fg-muted hover:text-fg"
+                  >
+                    {copied === l.id ? 'Copied!' : 'Copy link'}
+                  </button>
+                  <button
+                    onClick={() => revokeShareLink.mutate(l.id)}
+                    className="rounded-lg border border-app-border px-2 py-1 text-xs text-red-400 hover:text-red-300"
+                  >
+                    Revoke
+                  </button>
+                </div>
+              </div>
+            ))}
+            {shareLinks.data?.length === 0 && (
+              <p className="text-sm text-fg-muted">No share links yet.</p>
             )}
           </div>
         </section>

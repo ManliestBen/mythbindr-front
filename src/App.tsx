@@ -13,6 +13,7 @@ import ElementEditor from './pages/ElementEditor';
 import SearchResults from './pages/SearchResults';
 import Members from './pages/Members';
 import AcceptInvite from './pages/AcceptInvite';
+import SharePage from './pages/SharePage';
 import Settings from './pages/Settings';
 import Placeholder from './pages/Placeholder';
 
@@ -28,29 +29,15 @@ function Splash() {
   );
 }
 
-function Gate() {
+/** Layout route: gate the whole authed app; public routes live outside it. */
+function RequireAuth() {
   const { user, loading } = useAuth();
   if (loading) return <Splash />;
   if (!user) return <AuthScreen />;
   return (
-    <BrowserRouter>
-      <ActiveCampaignProvider>
-        <Routes>
-          <Route element={<AppShell />}>
-            <Route index element={<Navigate to="/campaigns" replace />} />
-            <Route path="campaigns" element={<Campaigns />} />
-            <Route path="campaigns/:cid" element={<CampaignHome />} />
-            <Route path="campaigns/:cid/members" element={<Members />} />
-            <Route path="campaigns/:cid/search" element={<SearchResults />} />
-            <Route path="invite/:token" element={<AcceptInvite />} />
-            <Route path="campaigns/:cid/:type" element={<ElementList />} />
-            <Route path="campaigns/:cid/:type/:elementId" element={<ElementEditor />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="*" element={<Placeholder />} />
-          </Route>
-        </Routes>
-      </ActiveCampaignProvider>
-    </BrowserRouter>
+    <ActiveCampaignProvider>
+      <AppShell />
+    </ActiveCampaignProvider>
   );
 }
 
@@ -60,7 +47,26 @@ export default function App() {
       <ThemeProvider>
         <AuthProvider>
           <AuthThemeSync />
-          <Gate />
+          <BrowserRouter>
+            <Routes>
+              {/* Public player share view — no auth. */}
+              <Route path="/share/:token" element={<SharePage />} />
+
+              {/* Authenticated app. */}
+              <Route element={<RequireAuth />}>
+                <Route index element={<Navigate to="/campaigns" replace />} />
+                <Route path="campaigns" element={<Campaigns />} />
+                <Route path="campaigns/:cid" element={<CampaignHome />} />
+                <Route path="campaigns/:cid/members" element={<Members />} />
+                <Route path="campaigns/:cid/search" element={<SearchResults />} />
+                <Route path="invite/:token" element={<AcceptInvite />} />
+                <Route path="campaigns/:cid/:type" element={<ElementList />} />
+                <Route path="campaigns/:cid/:type/:elementId" element={<ElementEditor />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="*" element={<Placeholder />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
