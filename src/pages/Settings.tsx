@@ -1,6 +1,7 @@
 import { useTheme } from '../theme/ThemeProvider';
 import { useAuth } from '../auth/AuthProvider';
 import { THEMES, type ThemeMeta } from '../themes';
+import SpotifyIntegration from '../components/SpotifyIntegration';
 
 function ThemeCard({
   meta,
@@ -125,6 +126,9 @@ export default function Settings() {
           ))}
         </div>
       </section>
+
+      {/* Admin-only; renders nothing for non-admins. */}
+      <SpotifyIntegration />
     </div>
   );
 }
