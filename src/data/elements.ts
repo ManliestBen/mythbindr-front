@@ -38,6 +38,7 @@ export interface ElementInput {
   playerVisible?: boolean;
   secrets?: string;
   data?: Record<string, unknown>;
+  relationships?: { targetId: string; relType: string }[];
 }
 
 /** Invalidate every elements list + the dashboard counts for a campaign. */

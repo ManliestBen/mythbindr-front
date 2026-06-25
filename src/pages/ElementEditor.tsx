@@ -72,6 +72,9 @@ export default function ElementEditor() {
       <div className="mt-5 rounded-xl border border-app-border bg-app-surface p-5">
         <ElementForm
           campaignId={cid ?? ''}
+          dataFields={cfg.dataFields}
+          relationships={cfg.relationships}
+          selfId={element?.id}
           submitLabel={isNew ? `Create ${cfg.label}` : 'Save changes'}
           busy={create.isPending || update.isPending}
           error={mutationError ? mutationError.message : null}
@@ -83,6 +86,10 @@ export default function ElementEditor() {
                   tagsInput: element.tags.join(', '),
                   playerVisible: element.playerVisible,
                   secrets: element.secrets,
+                  data: element.data,
+                  relationships: element.links
+                    .filter((l) => l.source === 'relationship')
+                    .map((l) => ({ targetId: l.targetId, relType: l.relType })),
                 }
               : undefined
           }
