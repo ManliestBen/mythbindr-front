@@ -1,41 +1,37 @@
-# MythBindr
+# MythBindr — Frontend
 
 > _"Your Campaign. Bound by Myth."_
 
-An assistant for new **and** experienced Dungeon Masters to build whole D&D campaigns,
-partial arcs, or individual elements — and run them live at the table.
+React + Vite + TypeScript client for MythBindr — an assistant for building and
+running D&D campaigns.
 
-## Status
+- **Backend repo:** [ManliestBen/mythbindr-back](https://github.com/ManliestBen/mythbindr-back) (Express API, deployed separately)
+- **Product plan & full feature catalog:** [`PLAN.md`](./PLAN.md)
 
-🚧 **Phase D — Discovery / Feature Definition.** The product plan and full feature catalog
-live in [`PLAN.md`](./PLAN.md). No application code yet.
+## Stack
 
-## What it will be
+- React + Vite + TypeScript, Tailwind CSS (CSS-variable theming)
+- React Router; passkey auth UI via [@simplewebauthn/browser](https://simplewebauthn.dev/)
 
-- **Build:** campaigns, NPCs, locations, encounters, items, quests, factions, lore — all cross-linked.
-- **Run:** an at-the-table session mode (initiative tracker, HP/conditions, dice, quick reference).
-- **5e-aware:** grounded in the D&D 5e SRD (stat blocks, CR, spells, conditions).
-- **One-shot ready:** generate a party of partially-filled, player-claimable character sheets.
-- **Collaborative:** multi-GM campaigns with roles.
-- **Themeable:** four selectable UI themes (see below).
+## Develop
 
-## Planned stack
+```bash
+npm install
+npm run dev        # http://localhost:5173
+```
 
-- **Frontend:** React + Vite + TypeScript + Tailwind
-- **Backend:** Node + Express + TypeScript, MongoDB (Mongoose)
-- **Auth:** Passkeys only ([SimpleWebAuthn](https://simplewebauthn.dev/)) — no passwords
-- **AI (later):** Claude API for campaign/element generation
+The dev server proxies `/api` and `/socket.io` to `http://localhost:4000`, so
+run the [backend](https://github.com/ManliestBen/mythbindr-back) locally
+(`npm run dev` there) to exercise auth and data. To point at a remote backend
+(e.g. the Raspberry Pi), change the proxy target in `vite.config.ts`.
 
 ## Themes
 
-Four selectable UI themes derived from the brand sheets in
-[`design/brand-themes-reference.png`](./design/brand-themes-reference.png):
+Four selectable UI themes (Mythic Gold, Arcane Navy, Parchment Tome, Ember
+Violet). Open [`design/theme-preview.html`](./design/theme-preview.html) for a
+static reference, or switch them live in **Settings → Appearance**.
 
-| Theme | Mood |
-|---|---|
-| Mythic Gold (default) | Dark, heraldic, gold + violet accent |
-| Arcane Navy | Midnight blue, scholarly |
-| Parchment Tome (light) | Cozy parchment, hand-drawn |
-| Ember Violet | Black + violet flame, modern |
+## Deploy
 
-Open [`design/theme-preview.html`](./design/theme-preview.html) in a browser to see all four applied to a live dashboard.
+Netlify (see [`netlify.toml`](./netlify.toml)) — builds to `dist/`. The backend
+is hosted separately on a Raspberry Pi.
