@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { usePresence, type Participant } from '../realtime/usePresence';
+import { useAuth } from '../auth/AuthProvider';
 import { ELEMENT_TYPE_BY_SEGMENT, segmentForType } from '../data/elementTypes';
 import {
   useBacklinks,
@@ -23,6 +24,7 @@ export default function ElementEditor() {
   const del = useDeleteElement(cid ?? '');
   const backlinks = useBacklinks(cid ?? '', isNew ? undefined : elementId);
   const participants = usePresence(isNew ? undefined : elementId);
+  const { user } = useAuth();
   const [conflict, setConflict] = useState(false);
 
   const backTo = `/campaigns/${cid}/${seg}`;
@@ -102,6 +104,8 @@ export default function ElementEditor() {
           dataFields={cfg.dataFields}
           relationships={cfg.relationships}
           selfId={element?.id}
+          collabElementId={isNew ? undefined : elementId}
+          userName={user?.displayName}
           submitLabel={isNew ? `Create ${cfg.label}` : 'Save changes'}
           busy={create.isPending || update.isPending}
           error={mutationError ? mutationError.message : null}

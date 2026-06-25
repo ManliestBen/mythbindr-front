@@ -2,6 +2,7 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import RichTextEditor from './RichTextEditor';
+import CollaborativeEditor from './CollaborativeEditor';
 import { useElements } from '../data/elements';
 import type { DataField } from '../data/elementTypes';
 
@@ -43,6 +44,8 @@ export default function ElementForm({
   dataFields = [],
   relationships = false,
   selfId,
+  collabElementId,
+  userName,
 }: {
   defaultValues?: ElementFormValues;
   onSubmit: (result: ElementFormResult) => void;
@@ -54,6 +57,9 @@ export default function ElementForm({
   dataFields?: DataField[];
   relationships?: boolean;
   selfId?: string;
+  /** When set, the body is co-edited in real time (Yjs) instead of via the form. */
+  collabElementId?: string;
+  userName?: string;
 }) {
   const {
     register,
@@ -72,7 +78,8 @@ export default function ElementForm({
   const submit = (v: ElementFormValues) =>
     onSubmit({
       name: v.name.trim(),
-      body: v.body ?? null,
+      // In collab mode Yjs owns the body server-side — don't submit it via REST.
+      body: collabElementId ? undefined : v.body ?? null,
       tags: (v.tagsInput ?? '')
         .split(',')
         .map((t) => t.trim())
@@ -122,17 +129,25 @@ export default function ElementForm({
 
       <div>
         <label className={labelCls}>Body</label>
-        <Controller
-          control={control}
-          name="body"
-          render={({ field }) => (
-            <RichTextEditor
-              value={field.value}
-              onChange={field.onChange}
-              campaignId={campaignId}
-            />
-          )}
-        />
+        {collabElementId ? (
+          <CollaborativeEditor
+            elementId={collabElementId}
+            campaignId={campaignId}
+            userName={userName ?? 'GM'}
+          />
+        ) : (
+          <Controller
+            control={control}
+            name="body"
+            render={({ field }) => (
+              <RichTextEditor
+                value={field.value}
+                onChange={field.onChange}
+                campaignId={campaignId}
+              />
+            )}
+          />
+        )}
       </div>
 
       {relationships && (
