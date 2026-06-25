@@ -333,7 +333,13 @@ dashboard at deploy — Spotify (§5.12a) needs the prod callback URL added, and
 
 ---
 
-## 9. Immediate next step
-Begin **Phase 0**: MERN skeleton (Vite client + Express/TS server) + MongoDB connection +
-the theme system with a Settings menu exposing all 4 themes + SimpleWebAuthn passkey
-register/login. (MongoDB connection string is in `server/.env`.)
+## 9. Progress
+
+**Phase 0 — Foundation** ✅ (complete)
+- ✅ MERN monorepo skeleton (Vite + React + TS client; Express + TS server) + verified MongoDB connection.
+- ✅ Theme system: 4 themes as CSS-variable token sets + Settings → Appearance switcher.
+- ✅ Passkey auth (SimpleWebAuthn): usernameless register/login/logout, sessions in Mongo,
+  `User` + `Credential` models, first-user-admin bootstrap, theme persisted to the user profile.
+
+**Next — Phase 1 (Core building):** campaigns + core element types (CRUD + cross-linking).
+See §3 roadmap.

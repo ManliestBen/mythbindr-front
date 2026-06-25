@@ -1,4 +1,5 @@
 import { useTheme } from '../theme/ThemeProvider';
+import { useAuth } from '../auth/AuthProvider';
 import { THEMES, type ThemeMeta } from '../themes';
 
 function ThemeCard({
@@ -69,12 +70,44 @@ function ThemeCard({
 
 export default function Settings() {
   const { themeId, setThemeId } = useTheme();
+  const { user, logout, busy } = useAuth();
 
   return (
     <div className="mx-auto max-w-4xl">
       <h1 className="text-2xl font-bold">Settings</h1>
 
-      <section className="mt-6">
+      {user && (
+        <section className="mt-6">
+          <h2 className="font-heading text-lg font-bold">Account</h2>
+          <div className="mt-3 flex items-center justify-between rounded-xl border border-app-border bg-app-surface p-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium">{user.displayName}</span>
+                {user.isAdmin && (
+                  <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">
+                    Admin
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-fg-muted">
+                Signed in with a passkey.
+                {user.isAdmin
+                  ? ' You can use AI features.'
+                  : ' AI features are limited to admins.'}
+              </p>
+            </div>
+            <button
+              onClick={() => logout()}
+              disabled={busy}
+              className="rounded-lg border border-app-border px-3 py-1.5 text-sm text-fg-muted hover:text-fg disabled:opacity-50"
+            >
+              Sign out
+            </button>
+          </div>
+        </section>
+      )}
+
+      <section className="mt-8">
         <h2 className="font-heading text-lg font-bold">Appearance</h2>
         <p className="mt-1 text-sm text-fg-muted">
           Choose a theme. Your choice is saved on this device for now, and will

@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { useTheme } from '../theme/ThemeProvider';
+import { useAuth } from '../auth/AuthProvider';
 import SystemStatus from './SystemStatus';
 
 interface NavItem {
@@ -23,6 +24,7 @@ const NAV: NavItem[] = [
 
 export default function Sidebar() {
   const { theme } = useTheme();
+  const { user, logout, busy } = useAuth();
 
   return (
     <aside className="flex h-full w-56 shrink-0 flex-col border-r border-app-border bg-app-surface">
@@ -68,7 +70,33 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-app-border px-5 py-4">
+      {user && (
+        <div className="border-t border-app-border px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="truncate text-sm font-medium">
+                  {user.displayName}
+                </span>
+                {user.isAdmin && (
+                  <span className="rounded-full bg-brand/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brand">
+                    Admin
+                  </span>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => logout()}
+              disabled={busy}
+              className="rounded-md border border-app-border px-2 py-1 text-[11px] text-fg-muted hover:text-fg disabled:opacity-50"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="border-t border-app-border px-5 py-3">
         <SystemStatus />
       </div>
     </aside>
