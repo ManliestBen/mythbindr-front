@@ -1,6 +1,7 @@
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import RichTextEditor from './RichTextEditor';
 
 const inputCls =
   'mt-1 w-full rounded-lg border border-app-border bg-app-bg px-3 py-2 text-sm outline-none focus:border-brand';
@@ -8,7 +9,7 @@ const labelCls = 'block text-xs font-medium text-fg-muted';
 
 export const elementFormSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(200),
-  body: z.string().optional(),
+  body: z.any().optional(),
   tagsInput: z.string().optional(),
   playerVisible: z.boolean().optional(),
   secrets: z.string().optional(),
@@ -18,7 +19,7 @@ export type ElementFormValues = z.infer<typeof elementFormSchema>;
 /** Normalized result handed to the caller (tags split, defaults filled). */
 export interface ElementFormResult {
   name: string;
-  body: string;
+  body: unknown;
   tags: string[];
   playerVisible: boolean;
   secrets: string;
@@ -31,6 +32,7 @@ export default function ElementForm({
   busy,
   onCancel,
   error,
+  campaignId,
 }: {
   defaultValues?: ElementFormValues;
   onSubmit: (result: ElementFormResult) => void;
@@ -38,10 +40,12 @@ export default function ElementForm({
   busy?: boolean;
   onCancel?: () => void;
   error?: string | null;
+  campaignId: string;
 }) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<ElementFormValues>({
     resolver: zodResolver(elementFormSchema),
@@ -51,7 +55,7 @@ export default function ElementForm({
   const submit = (v: ElementFormValues) =>
     onSubmit({
       name: v.name.trim(),
-      body: v.body ?? '',
+      body: v.body ?? null,
       tags: (v.tagsInput ?? '')
         .split(',')
         .map((t) => t.trim())
@@ -69,7 +73,17 @@ export default function ElementForm({
       </div>
       <div>
         <label className={labelCls}>Body</label>
-        <textarea rows={6} className={inputCls} {...register('body')} placeholder="Write…" />
+        <Controller
+          control={control}
+          name="body"
+          render={({ field }) => (
+            <RichTextEditor
+              value={field.value}
+              onChange={field.onChange}
+              campaignId={campaignId}
+            />
+          )}
+        />
       </div>
       <div>
         <label className={labelCls}>Tags (comma-separated)</label>

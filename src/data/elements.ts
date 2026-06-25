@@ -120,3 +120,21 @@ export function useRestoreElement(cid: string) {
     onSuccess: () => invalidateElements(qc, cid),
   });
 }
+
+export interface Backlink {
+  id: string;
+  type: string;
+  name: string;
+}
+
+/** Elements that @mention or link to the given element ("Linked from"). */
+export function useBacklinks(cid: string, id?: string) {
+  return useQuery({
+    queryKey: qk.backlinks(cid, id ?? ''),
+    queryFn: () =>
+      apiGet<{ backlinks: Backlink[] }>(
+        `/api/campaigns/${cid}/elements/${id}/backlinks`,
+      ).then((r) => r.backlinks),
+    enabled: !!cid && !!id && id !== 'new',
+  });
+}

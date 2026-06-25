@@ -17,3 +17,10 @@ export const ELEMENT_TYPE_BY_SEGMENT: Record<string, ElementTypeConfig> = {
   encounters: { type: 'encounter', label: 'Encounter', plural: 'Encounters', available: false },
   items: { type: 'item', label: 'Item', plural: 'Items', available: false },
 };
+
+/** Reverse lookup: backend element `type` → URL segment (for linking to an element). */
+export function segmentForType(type: string): string | undefined {
+  return Object.keys(ELEMENT_TYPE_BY_SEGMENT).find(
+    (seg) => ELEMENT_TYPE_BY_SEGMENT[seg].type === type,
+  );
+}

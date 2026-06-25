@@ -1,6 +1,7 @@
-import { useNavigate, useParams } from 'react-router-dom';
-import { ELEMENT_TYPE_BY_SEGMENT } from '../data/elementTypes';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ELEMENT_TYPE_BY_SEGMENT, segmentForType } from '../data/elementTypes';
 import {
+  useBacklinks,
   useCreateElement,
   useDeleteElement,
   useElement,
@@ -18,6 +19,7 @@ export default function ElementEditor() {
   const create = useCreateElement(cid ?? '');
   const update = useUpdateElement(cid ?? '', elementId ?? '');
   const del = useDeleteElement(cid ?? '');
+  const backlinks = useBacklinks(cid ?? '', isNew ? undefined : elementId);
 
   const backTo = `/campaigns/${cid}/${seg}`;
 
@@ -69,6 +71,7 @@ export default function ElementEditor() {
 
       <div className="mt-5 rounded-xl border border-app-border bg-app-surface p-5">
         <ElementForm
+          campaignId={cid ?? ''}
           submitLabel={isNew ? `Create ${cfg.label}` : 'Save changes'}
           busy={create.isPending || update.isPending}
           error={mutationError ? mutationError.message : null}
@@ -76,7 +79,7 @@ export default function ElementEditor() {
             element
               ? {
                   name: element.name,
-                  body: typeof element.body === 'string' ? element.body : '',
+                  body: element.body,
                   tagsInput: element.tags.join(', '),
                   playerVisible: element.playerVisible,
                   secrets: element.secrets,
@@ -87,6 +90,34 @@ export default function ElementEditor() {
           onCancel={() => navigate(backTo)}
         />
       </div>
+
+      {!isNew && backlinks.data && backlinks.data.length > 0 && (
+        <div className="mt-6 rounded-xl border border-app-border bg-app-surface p-4">
+          <h3 className="text-sm font-bold">Linked from</h3>
+          <ul className="mt-2 space-y-1">
+            {backlinks.data.map((b) => {
+              const seg = segmentForType(b.type);
+              return (
+                <li key={b.id} className="flex items-center gap-2">
+                  {seg ? (
+                    <Link
+                      to={`/campaigns/${cid}/${seg}/${b.id}`}
+                      className="text-sm text-fg-muted hover:text-brand"
+                    >
+                      {b.name}
+                    </Link>
+                  ) : (
+                    <span className="text-sm text-fg-muted">{b.name}</span>
+                  )}
+                  <span className="text-[10px] uppercase tracking-wide text-fg-muted">
+                    {b.type}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
