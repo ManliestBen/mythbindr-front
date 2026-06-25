@@ -102,6 +102,7 @@ Every feature below is intentionally granular — concrete fields, UI behaviors,
 - **[P1]** Recovery flow: sign in with a backup code when no passkey is available, then forced to enroll a new passkey.
 - **[P1]** Profile page: display name, optional avatar upload, pronouns, default landing campaign, default theme.
 - **[P2]** Session/device manager: see active sessions with browser + location, "sign out everywhere" button.
+- **[MVP]** **Account-level admin role** (`isAdmin` flag, separate from per-campaign roles). Gates AI features (§5.14) and any future privileged/cost-bearing operations. **Bootstrap:** the first registered user becomes admin; admins can grant/revoke admin on other users. The flag is checked **server-side**, never trusted from the client.
 
 ### 5.2 Appearance & UX
 - **[MVP]** Settings → Appearance: 4 theme cards (Mythic Gold, Arcane Navy, Parchment Tome, Ember Violet), each a live mini-preview; click to apply instantly; selection persisted to profile.
@@ -252,6 +253,13 @@ _Set the mood: attach soundtracks to scenes and control playback during a sessio
 - **[Later]** Homebrew monster/stat-block builder with CR estimator.
 
 ### 5.14 AI assist (Phase 5 — architected now, stubbed)
+> **🔒 Admin-only guardrail (hard requirement):** EVERY feature in this section — any
+> operation that makes a call to the AI provider — is restricted to **admin users**
+> (§5.1 `isAdmin`). Enforcement is **server-side**: a single `requireAdmin` middleware
+> guards all AI routes, so a non-admin can't trigger generation even by crafting requests
+> directly. "Generate with AI" buttons are hidden/disabled for non-admins in the UI as a
+> secondary measure only. This caps cost and abuse. The `ContentGenerator` interface and
+> its routes are built with this gate from day one, even while stubbed.
 - **[P2]** Generate a whole campaign from a short prompt (premise, length, tone) → arcs + key NPCs + key locations + opening hook, each saved as real linked elements.
 - **[P2]** Generate a partial arc / single chapter that slots into an existing campaign and references existing elements.
 - **[P2]** Generate a single element with the "Generate with AI" button on each editor: NPC, location, encounter, item, quest, read-aloud boxed text.
@@ -270,7 +278,7 @@ _Set the mood: attach soundtracks to scenes and control playback during a sessio
 
 ## 6. Data model sketch (Mongoose)
 
-- **User** — `displayName`, `theme`, `uiDensity`, `spotify?` (sub-doc: `connected`, `accessToken`/`refreshToken` (encrypted), `expiresAt`, `scope`, `productTier` — Premium check), timestamps.
+- **User** — `displayName`, `isAdmin` (account-level; gates AI features §5.14, server-checked), `theme`, `uiDensity`, `spotify?` (sub-doc: `connected`, `accessToken`/`refreshToken` (encrypted), `expiresAt`, `scope`, `productTier` — Premium check), timestamps.
 - **Credential** — `userId`, `credentialID`, `publicKey`, `counter`, `deviceName` (WebAuthn).
 - **Campaign** — `name`, `premise`, `tone`, `levelRange`, `ownerId`, `moodSlots[]` (`{ label, spotifyUri }` for one-tap ambiance, §5.12a).
 - **Membership** — `campaignId`, `userId`, `role` (owner|editor|viewer).
