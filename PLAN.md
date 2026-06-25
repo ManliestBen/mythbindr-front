@@ -366,6 +366,15 @@ dashboard at deploy — Spotify (§5.12a) needs the prod callback URL added, and
 - ✅ **Player share view**: owner-only tokenized links; public `/share/:token` read-only
   world-wiki via a whitelist serializer (secrets never published, @mentions de-identified).
 
-**Next — Phase 3 (At-the-table "Run Session"):** initiative tracker, HP/conditions, dice,
-encounter→tracker round-trip, plus the Spotify in-session player on the existing
-admin-gated `/api/integrations/spotify/token`. See §3 roadmap and §5.12/§5.12a.
+**Phase 3 — At-the-table "Run Session"** ✅ (complete)
+- ✅ Persisted single-screen session (`Session` model): **initiative tracker** + turn engine
+  (round counter, per-turn condition ticking), per-combatant **HP** (damage/heal/temp,
+  Bloodied/Down), **5e conditions**, **death saves**; add combatants manually or from NPCs.
+- ✅ **Encounter→tracker** round-trip ("Run encounter" seeds combatants from `data.combatants`).
+- ✅ **Dice roller** (d4–d100, modifier, count, adv/dis) + persisted **session log** with notes.
+- ✅ **In-session Spotify player** (admin-only Web Playback SDK): now-playing + transport +
+  one-tap **mood slots** (`Campaign.moodSlots`) with a playlist-picker editor.
+
+**Next — Phase 4 (5e SRD rules-awareness):** bundle a static SRD dataset (monsters/spells/
+conditions/magic-items), seed into Mongo at deploy, reference UIs, drop-monster-into-encounter,
+and encounter XP math. See §3 roadmap and §5.13.
