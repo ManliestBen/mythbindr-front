@@ -281,6 +281,30 @@ All resolved 2026-06-25:
 
 ---
 
-## 8. Immediate next step
-Once this feature list is approved, begin **Phase 0**: passkey auth + MongoDB connection +
-the theme system with a Settings menu exposing all 4 themes.
+## 8. Deployment (decided at deploy time)
+
+**Target:** client on **Netlify**. **Key constraint:** the backend is **Express + Socket.IO
+(persistent websockets, §5.11) + server sessions**, which **Netlify Functions (serverless,
+short-lived) cannot host** — they don't hold long-lived socket connections.
+
+**Recommended topology (split deploy):**
+- **Client** (React/Vite static) → **Netlify** (CDN + `netlify.toml` SPA redirect).
+- **Server** (Express + Socket.IO + Mongo) → a long-running, websocket-capable host:
+  **Render / Railway / Fly.io / VPS**. (Netlify can proxy `/api` + `/socket.io` to it.)
+- **Database** → MongoDB Atlas (already configured).
+
+**Passkey / WebAuthn production config (set at deploy):**
+- `RP_ID` = the client's registrable domain (e.g. `mythbindr.netlify.app`, or a custom-domain apex).
+- `RP_ORIGIN` / `CLIENT_ORIGIN` = the full `https://` client origin.
+- Client and API on different domains ⇒ session cookie must be `SameSite=None; Secure` and
+  CORS must allow credentials. _Simpler if a custom domain puts client + API under one parent
+  (e.g. `app.` + `api.`) so cookies stay aligned and `RP_ID` matches._
+
+**Parked decisions:** which backend host (Render/Railway/Fly/VPS); custom domain vs. `*.netlify.app`.
+
+---
+
+## 9. Immediate next step
+Begin **Phase 0**: MERN skeleton (Vite client + Express/TS server) + MongoDB connection +
+the theme system with a Settings menu exposing all 4 themes + SimpleWebAuthn passkey
+register/login. (MongoDB connection string is in `server/.env`.)
