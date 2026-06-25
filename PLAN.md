@@ -49,6 +49,8 @@ mythbindr/
 │   ├── models/    Mongoose schemas (see §6)
 │   ├── srd/       bundled 5e SRD dataset + Mongo seeder (monsters, spells, conditions, items)
 │   ├── share/     read-only player-facing share view (tokenized, no account)
+│   ├── integrations/
+│   │   └── spotify/  OAuth routes, token refresh, Web API proxy (§5.12a)
 │   └── ai/        ContentGenerator interface (stub now → Claude later)
 ├── design/        theme-preview.html (live 4-theme reference)
 └── PLAN.md        this file
@@ -226,6 +228,20 @@ _Designed for the "build a one-shot for the family" workflow: generate a ready-t
 - **[P2]** Session log auto-builds entries (combat started, NPC died, quest completed) + GM free-text recap; saved to the campaign and shown as "Recent Notes".
 - **[P2]** Encounter-to-tracker round trip: ending a session writes outcomes (XP awarded, casualties) back to the encounter and quests.
 
+### 5.12a Audio & ambiance (Spotify integration)
+_Set the mood: attach soundtracks to scenes and control playback during a session without leaving MythBindr._
+**Auth model:** Spotify OAuth 2.0 (Authorization Code flow, handled server-side; client secret stays on the server). Each GM connects their own Spotify account. **In-app playback requires Spotify Premium** (Spotify restriction). Setup guide: [`docs/spotify-setup.md`](./docs/spotify-setup.md).
+- **[P1]** Connect / disconnect a Spotify account via OAuth; store per-user tokens (encrypted) and auto-refresh; show connection + Premium status in Settings → Integrations.
+- **[P1]** In-session player on the Run Session screen (§5.12): play/pause, skip, volume, now-playing display — via the Spotify **Web Playback SDK** (registers a "MythBindr" device in the browser).
+- **[P1]** Attach a playlist or track as a **soundtrack** to any element (encounter, location, scene/arc, or the whole campaign); one click starts it during play.
+- **[P1]** **Mood slots** on the session screen (e.g. Tavern / Travel / Combat / Boss / Mystery), each bound to a playlist for instant one-tap switching.
+- **[P2]** Search Spotify (playlists/tracks) inside MythBindr to assign soundtracks (Web API search).
+- **[P2]** Browse and pick from the GM's own Spotify playlists (`playlist-read-*` scopes).
+- **[P2]** Auto-resume: when a Combat track ends, return to the previous ambiance playlist.
+- **[P2]** Target device picker: play on the in-app player or push to another Spotify Connect device (e.g. a living-room speaker).
+- **[Later]** Surface "Now playing" on the player-facing share view (§5.11a) so remote players see/hear the same vibe.
+- **[Later]** Curated default ambiance playlists bundled for new GMs.
+
 ### 5.13 5e SRD rules-awareness
 - **[P2]** Bundled SRD monster library (searchable/filter by CR, type, size); preview full stat block.
 - **[P2]** Drop a monster into an encounter or onto an NPC; instance keeps its own HP in a session.
@@ -254,13 +270,13 @@ _Designed for the "build a one-shot for the family" workflow: generate a ready-t
 
 ## 6. Data model sketch (Mongoose)
 
-- **User** — `displayName`, `theme`, `uiDensity`, timestamps.
+- **User** — `displayName`, `theme`, `uiDensity`, `spotify?` (sub-doc: `connected`, `accessToken`/`refreshToken` (encrypted), `expiresAt`, `scope`, `productTier` — Premium check), timestamps.
 - **Credential** — `userId`, `credentialID`, `publicKey`, `counter`, `deviceName` (WebAuthn).
-- **Campaign** — `name`, `premise`, `tone`, `levelRange`, `ownerId`.
+- **Campaign** — `name`, `premise`, `tone`, `levelRange`, `ownerId`, `moodSlots[]` (`{ label, spotifyUri }` for one-tap ambiance, §5.12a).
 - **Membership** — `campaignId`, `userId`, `role` (owner|editor|viewer).
 - **Element** (discriminated by `type`: npc|location|encounter|item|note|quest|faction|pc) —
   `campaignId`, `name`, `body`, `tags[]`, `links[]` (refs to other elements), `data` (type-specific, e.g. stat block),
-  `playerVisible` (bool, drives the share view), `secrets` (GM-only, never published), `docState` (CRDT doc / version vector for real-time co-editing), `updatedBy`/`version`.
+  `playerVisible` (bool, drives the share view), `secrets` (GM-only, never published), `docState` (CRDT doc / version vector for real-time co-editing), `soundtrack?` (`{ spotifyUri, name }`, §5.12a), `updatedBy`/`version`.
 - **ShareLink** — `campaignId`, `token`, `scope` (whole-campaign | element-set | per-player), `expiresAt`, `revoked` — powers the read-only player-facing share view (§5.11a).
 - **Character sheet** (a `pc`-type Element) — adds `pregen` (bool), `claimantName?` (display name the player typed when claiming — no account), `claimedAt?`, `autofilledFields[]` (which fields were AI/SRD-filled, for the "suggested" badge), `lockedGroups[]` (identity|mechanics|kit|flavor), and a 5e `sheet` object (abilities, HP, AC, skills, proficiencies, equipment, spells).
 - **ClaimLink** — `campaignId`, `characterId?`, `token`, `expiresAt`, `claimantName?` (no-account model: token grants edit access to one pregen sheet; claimant identified by the name they enter, not a user).
@@ -299,6 +315,11 @@ short-lived) cannot host** — they don't hold long-lived socket connections.
 - Client and API on different domains ⇒ session cookie must be `SameSite=None; Secure` and
   CORS must allow credentials. _Simpler if a custom domain puts client + API under one parent
   (e.g. `app.` + `api.`) so cookies stay aligned and `RP_ID` matches._
+
+**Third-party integrations:** register production OAuth **redirect URIs** in each provider's
+dashboard at deploy — Spotify (§5.12a) needs the prod callback URL added, and the
+`SPOTIFY_CLIENT_ID/SECRET` live as server env on the backend host. See
+[`docs/spotify-setup.md`](./docs/spotify-setup.md).
 
 **Parked decisions:** which backend host (Render/Railway/Fly/VPS); custom domain vs. `*.netlify.app`.
 
