@@ -10,6 +10,9 @@ import {
 } from '../data/session';
 import CombatantCard from '../components/session/CombatantCard';
 import AddCombatant from '../components/session/AddCombatant';
+import DiceRoller from '../components/session/DiceRoller';
+import RollLog from '../components/session/RollLog';
+import { useAuth } from '../auth/AuthProvider';
 
 function sortByInit(cs: Combatant[]): Combatant[] {
   return [...cs].sort((a, b) => b.initiative - a.initiative);
@@ -20,6 +23,7 @@ export default function RunSession() {
   const [params] = useSearchParams();
   const fromEncounter = params.get('from') ?? undefined;
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: loaded, isLoading } = useSession(cid ?? '');
   const start = useStartSession(cid ?? '');
@@ -61,6 +65,18 @@ export default function RunSession() {
         return next;
       }),
     [persist],
+  );
+
+  const addLog = useCallback(
+    (kind: 'roll' | 'note' | 'event', text: string) =>
+      patch((s) => ({
+        ...s,
+        log: [
+          ...s.log,
+          { kind, text, by: user?.displayName, at: new Date().toISOString() },
+        ].slice(-500),
+      })),
+    [patch, user],
   );
 
   if (isLoading && !session) return <p className="text-sm text-fg-muted">Loading…</p>;
@@ -115,7 +131,19 @@ export default function RunSession() {
             }
           : c,
       );
-      return { ...s, turnIndex: ti, round, combatants };
+      const log =
+        ti === 0
+          ? [
+              ...s.log,
+              {
+                kind: 'event' as const,
+                text: `Round ${round} begins`,
+                by: user?.displayName,
+                at: new Date().toISOString(),
+              },
+            ].slice(-500)
+          : s.log;
+      return { ...s, turnIndex: ti, round, combatants, log };
     });
 
   const endSession = () => {
@@ -129,7 +157,7 @@ export default function RunSession() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
           <p className="text-[11px] uppercase tracking-[0.15em] text-fg-muted">Run Session</p>
@@ -151,23 +179,27 @@ export default function RunSession() {
         </div>
       </div>
 
-      <div className="mt-4 space-y-2">
-        {order.map((c) => (
-          <CombatantCard
-            key={c.cid}
-            c={c}
-            isCurrent={c.cid === currentCid}
-            onChange={changeCombatant}
-            onRemove={() => removeCombatant(c.cid)}
-          />
-        ))}
-        {order.length === 0 && (
-          <p className="text-sm text-fg-muted">No combatants yet — add some below.</p>
-        )}
-      </div>
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="space-y-2 lg:col-span-2">
+          {order.map((c) => (
+            <CombatantCard
+              key={c.cid}
+              c={c}
+              isCurrent={c.cid === currentCid}
+              onChange={changeCombatant}
+              onRemove={() => removeCombatant(c.cid)}
+            />
+          ))}
+          {order.length === 0 && (
+            <p className="text-sm text-fg-muted">No combatants yet — add some below.</p>
+          )}
+          <AddCombatant onAdd={addCombatant} />
+        </div>
 
-      <div className="mt-4">
-        <AddCombatant onAdd={addCombatant} />
+        <div className="space-y-4">
+          <DiceRoller onRoll={(t) => addLog('roll', t)} />
+          <RollLog log={session.log} onNote={(t) => addLog('note', t)} />
+        </div>
       </div>
     </div>
   );
