@@ -334,10 +334,13 @@ dashboard at deploy — Spotify (§5.12a) needs the prod callback URL added, and
 ## 9. Progress
 
 **Phase 0 — Foundation** ✅ (complete)
-- ✅ MERN monorepo skeleton (Vite + React + TS client; Express + TS server) + verified MongoDB connection.
+- ✅ Split into **two repos** for independent deploy — `mythbindr-front` (Vite + React + TS)
+  and `mythbindr-back` (Express + TS) — with a verified MongoDB connection. (Previously a
+  MERN monorepo skeleton.)
 - ✅ Theme system: 4 themes as CSS-variable token sets + Settings → Appearance switcher.
-- ✅ Passkey auth (SimpleWebAuthn): usernameless register/login/logout, sessions in Mongo,
-  `User` + `Credential` models, first-user-admin bootstrap, theme persisted to the user profile.
+- ✅ Passkey auth (SimpleWebAuthn) — **implemented & verified working end-to-end across both
+  repos**: usernameless register/login/logout, sessions in Mongo, `User` + `Credential`
+  models, first-user-admin bootstrap, theme persisted to the user profile.
 
 **Next — Phase 1 (Core building):** campaigns + core element types (CRUD + cross-linking).
 See §3 roadmap.

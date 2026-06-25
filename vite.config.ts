@@ -6,6 +6,9 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
+    // Bind all interfaces (0.0.0.0) so WSL2 forwards localhost:5173 from the
+    // Windows browser. Loopback-only (the Vite default) isn't reliably forwarded.
+    host: true,
     port: 5173,
     proxy: {
       '/api': 'http://localhost:4000',

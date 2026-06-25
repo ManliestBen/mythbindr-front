@@ -5,13 +5,18 @@
 React + Vite + TypeScript client for MythBindr — an assistant for building and
 running D&D campaigns.
 
-- **Backend repo:** [ManliestBen/mythbindr-back](https://github.com/ManliestBen/mythbindr-back) (Express API, deployed separately)
+MythBindr is split across **two repos that together make up the app** — this is the
+**front end**:
+
+- **Frontend (this repo):** React + Vite client — passkey auth UI, theming, app shell.
+- **Backend:** [ManliestBen/mythbindr-back](https://github.com/ManliestBen/mythbindr-back) — Express API (passkey auth, sessions, MongoDB), deployed separately.
 - **Product plan & full feature catalog:** [`PLAN.md`](./PLAN.md)
 
 ## Stack
 
 - React + Vite + TypeScript, Tailwind CSS (CSS-variable theming)
-- React Router; passkey auth UI via [@simplewebauthn/browser](https://simplewebauthn.dev/)
+- React Router; **passkey auth** (register / login / logout) fully wired to the backend
+  via [@simplewebauthn/browser](https://simplewebauthn.dev/) — no passwords.
 
 ## Develop
 
