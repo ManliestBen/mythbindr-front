@@ -356,6 +356,16 @@ dashboard at deploy — Spotify (§5.12a) needs the prod callback URL added, and
 - ✅ Campaign **dashboard** (live counts by type + recent edits) and **global search**.
 - Stack added: `@tanstack/react-query`, `react-hook-form` + zod, TipTap (front); `zod` (back).
 
-**Next — Phase 2 (Collaboration & real-time):** membership invites + editor/viewer roles,
-real-time co-editing (Socket.IO + Yjs on the existing TipTap editor; `Element.docState`
-reserved), presence, and the player-facing share view. See §3 roadmap and §5.11/§5.11a.
+**Phase 2 — Collaboration & real-time** ✅ (complete)
+- ✅ Multi-GM: tokenized **invite links** + accept flow, **editor/viewer roles** with member
+  management (last-owner guard), and a per-campaign **activity log**.
+- ✅ **Real-time co-editing**: Socket.IO (session-reused auth) + **Yjs CRDT** via
+  TipTap Collaboration; `Element.docState` persists the doc, deriving body/bodyText/links
+  on save. **Live cursors** (CollaborationCaret) + presence avatars. LWW + conflict-banner
+  fallback shipped alongside.
+- ✅ **Player share view**: owner-only tokenized links; public `/share/:token` read-only
+  world-wiki via a whitelist serializer (secrets never published, @mentions de-identified).
+
+**Next — Phase 3 (At-the-table "Run Session"):** initiative tracker, HP/conditions, dice,
+encounter→tracker round-trip, plus the Spotify in-session player on the existing
+admin-gated `/api/integrations/spotify/token`. See §3 roadmap and §5.12/§5.12a.
