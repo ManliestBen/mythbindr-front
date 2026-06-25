@@ -38,22 +38,20 @@ experienced GMs with speed and power tools, via **progressive disclosure**.
 - **SRD data:** **bundled static dataset** (open 5e SRD) seeded into Mongo at deploy; no external API dependency (see §7.3).
 - **AI (later):** provider-agnostic `ContentGenerator` interface; concrete impl uses the **Claude API** (Opus/Sonnet). Cost/key model deferred to Phase 5 (§7.2).
 
+**Two repos** (split for independent deploy — frontend on Netlify, backend on a Raspberry Pi):
+
 ```
-mythbindr/
-├── client/        React + Vite + TS + Tailwind
-│   ├── themes/    4 theme token sets (see §4) + Settings theme switcher
-│   └── realtime/  Socket.IO client + shared-doc (CRDT) bindings
-├── server/        Express + TS
-│   ├── auth/      SimpleWebAuthn ceremonies, sessions
-│   ├── realtime/  Socket.IO server, presence, co-edit sync + persistence
-│   ├── models/    Mongoose schemas (see §6)
-│   ├── srd/       bundled 5e SRD dataset + Mongo seeder (monsters, spells, conditions, items)
-│   ├── share/     read-only player-facing share view (tokenized, no account)
-│   ├── integrations/
-│   │   └── spotify/  OAuth routes, token refresh, Web API proxy (§5.12a)
-│   └── ai/        ContentGenerator interface (stub now → Claude later)
-├── design/        theme-preview.html (live 4-theme reference)
-└── PLAN.md        this file
+mythbindr-front/   (this repo)            mythbindr-back/   (Express API)
+├── src/                                   ├── src/
+│   ├── themes.ts  4 theme token sets       │   ├── auth/      SimpleWebAuthn, sessions
+│   ├── theme/     ThemeProvider            │   ├── realtime/  Socket.IO, presence, co-edit (planned)
+│   ├── auth/      passkey UI               │   ├── models/    Mongoose schemas (see §6)
+│   ├── components/ app shell               │   ├── srd/       bundled 5e SRD + seeder (planned)
+│   ├── pages/                              │   ├── share/     player-facing share view (planned)
+│   └── realtime/  Socket.IO client (planned)│   ├── integrations/spotify/  OAuth (planned, §5.12a)
+├── design/        theme-preview.html       │   └── ai/        ContentGenerator (stub → Claude)
+├── netlify.toml                            ├── docs/spotify-setup.md
+└── PLAN.md        this file                └── .env          (Mongo URI, secrets — gitignored)
 ```
 
 ---
