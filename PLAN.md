@@ -229,7 +229,8 @@ _Designed for the "build a one-shot for the family" workflow: generate a ready-t
 
 ### 5.12a Audio & ambiance (Spotify integration)
 _Set the mood: attach soundtracks to scenes and control playback during a session without leaving MythBindr._
-**Auth model:** Spotify OAuth 2.0 (Authorization Code flow, handled server-side; client secret stays on the server). Each GM connects their own Spotify account. **In-app playback requires Spotify Premium** (Spotify restriction). Setup guide: [`docs/spotify-setup.md`](./docs/spotify-setup.md).
+**Auth model:** Spotify OAuth 2.0 (Authorization Code flow, handled server-side; client secret stays on the server). Each connecting GM uses their own Spotify account. **In-app playback requires Spotify Premium** (Spotify restriction). Setup guide: [`docs/spotify-setup.md`](./docs/spotify-setup.md).
+**Access — admin-only:** every Spotify feature is restricted to **admin users** (account-level `isAdmin`, §5.1), the same gate model as AI (§5.14). Enforcement is **server-side**: a `requireAdmin` middleware guards every `/api/integrations/spotify/*` route (the OAuth callback is gated transitively — only an admin can mint the signed `state` that a successful callback requires). Settings → Integrations is hidden for non-admins as a secondary UI measure only.
 - **[P1]** Connect / disconnect a Spotify account via OAuth; store per-user tokens (encrypted) and auto-refresh; show connection + Premium status in Settings → Integrations.
 - **[P1]** In-session player on the Run Session screen (§5.12): play/pause, skip, volume, now-playing display — via the Spotify **Web Playback SDK** (registers a "MythBindr" device in the browser).
 - **[P1]** Attach a playlist or track as a **soundtrack** to any element (encounter, location, scene/arc, or the whole campaign); one click starts it during play.
