@@ -23,7 +23,8 @@ experienced GMs with speed and power tools, via **progressive disclosure**.
 | Audience | **Both new & experienced**, equally | Progressive disclosure: simple defaults, power features on demand |
 | Usage | **Prep + at-the-table mode** | A live "Run Session" runtime, not just a builder |
 | System | **D&D 5e (SRD)** | Rules-aware: stat blocks, CR, spells, conditions, encounter math |
-| Collaboration | **Multi-GM co-editing** | Membership, roles/permissions, concurrent edits, invites |
+| Collaboration | **Multi-GM, real-time co-editing** | Membership, roles, invites + live websocket co-edit & presence (§5.11) |
+| Player view | **Read-only share view, core to v1** | Tokenized world-wiki/handouts; GM-secrets never published (§5.11a) |
 | AI | **Architected now, built later** | `ContentGenerator` interface stubbed; Claude API drops in (Phase 3) |
 
 ---
@@ -32,17 +33,22 @@ experienced GMs with speed and power tools, via **progressive disclosure**.
 
 - **Frontend:** React + Vite + TypeScript, Tailwind CSS, theme tokens as CSS variables.
 - **Backend:** Node + Express + TypeScript, MongoDB via Mongoose.
-- **Auth:** **Passkeys only** via `@simplewebauthn` (server + browser), httpOnly session cookies. No passwords.
-- **AI (later):** `ContentGenerator` interface; concrete impl uses the **Claude API** (Opus/Sonnet).
+- **Real-time:** WebSocket layer (Socket.IO) for live multi-GM co-editing + presence (see §7.1). Conflict resolution via a shared-document model (CRDT, e.g. Yjs, or OT) — this is the single largest technical lift in v1.
+- **Auth:** **Passkeys only** via `@simplewebauthn` (server + browser), httpOnly session cookies. No passwords. (Players use no-account claim links — §5.10 — and a tokenized share view — §5.11.)
+- **SRD data:** **bundled static dataset** (open 5e SRD) seeded into Mongo at deploy; no external API dependency (see §7.3).
+- **AI (later):** provider-agnostic `ContentGenerator` interface; concrete impl uses the **Claude API** (Opus/Sonnet). Cost/key model deferred to Phase 5 (§7.2).
 
 ```
 mythbindr/
 ├── client/        React + Vite + TS + Tailwind
-│   └── themes/    4 theme token sets (see §4) + Settings theme switcher
+│   ├── themes/    4 theme token sets (see §4) + Settings theme switcher
+│   └── realtime/  Socket.IO client + shared-doc (CRDT) bindings
 ├── server/        Express + TS
 │   ├── auth/      SimpleWebAuthn ceremonies, sessions
+│   ├── realtime/  Socket.IO server, presence, co-edit sync + persistence
 │   ├── models/    Mongoose schemas (see §6)
-│   ├── srd/       5e SRD data (monsters, spells, conditions, items)
+│   ├── srd/       bundled 5e SRD dataset + Mongo seeder (monsters, spells, conditions, items)
+│   ├── share/     read-only player-facing share view (tokenized, no account)
 │   └── ai/        ContentGenerator interface (stub now → Claude later)
 ├── design/        theme-preview.html (live 4-theme reference)
 └── PLAN.md        this file
@@ -55,12 +61,13 @@ mythbindr/
 - **Phase D — Discovery / Feature Definition** ✅ _(this document)_
 - **Phase 0 — Foundation:** passkeys, MongoDB, theme system + **Settings menu (all 4 themes selectable)**, app shell.
 - **Phase 1 — Core building:** campaigns + the core element types (CRUD + cross-linking).
-- **Phase 2 — Collaboration & workflow:** multi-GM membership/roles, search, sessions/notes.
+- **Phase 2 — Collaboration & real-time:** multi-GM membership/roles, search, sessions/notes, **real-time co-editing + presence (websockets)**, and the **player-facing share view** (both core to v1).
 - **Phase 3 — At-the-table mode:** initiative tracker, HP/conditions, dice, encounter runner.
-- **Phase 4 — 5e rules-awareness:** SRD stat blocks, CR/encounter balancing, spell/condition reference.
-- **Phase 5 — AI assist:** generate/refine campaigns, arcs, and elements via Claude.
+- **Phase 4 — 5e rules-awareness:** bundled SRD stat blocks, CR/encounter balancing, spell/condition reference.
+- **Phase 5 — AI assist:** generate/refine campaigns, arcs, and elements via Claude (cost/key model decided here).
 
 > Phases are dependency-ordered, not rigid. Some Phase 4 SRD data can land earlier to enrich Phase 1.
+> **Risk note:** real-time co-editing (Phase 2) is the biggest unknown; we may spike it early to de-risk, and ship last-write-wins as a fallback if the CRDT/OT work slips.
 
 ---
 
@@ -193,10 +200,17 @@ _Designed for the "build a one-shot for the family" workflow: generate a ready-t
 - **[P1]** Roles: Owner (full + manage members/delete), Editor (create/edit content), Viewer (read-only).
 - **[P1]** Per-element and per-campaign permission respect throughout the UI (hide edit controls for Viewers).
 - **[P1]** Activity log: chronological "who changed what, when" feed per campaign, filterable by member/element.
-- **[P2]** Optimistic concurrency: if two GMs save the same element, show a conflict banner with both versions to merge.
-- **[P2]** Presence indicators: show which co-GMs are currently viewing a campaign/element.
-- **[Later]** Read-only player-facing share: publish selected elements (no GM-secrets) to a campaign wiki link / handout view.
-- **[Later]** Real-time co-editing of a single element via websockets (stretch).
+- **[P1]** **Real-time co-editing (core to v1):** two+ GMs edit the same element simultaneously with live updates via websockets; concurrent changes merge via a shared-document model (CRDT/OT) rather than clobbering. Last-write-wins + conflict banner is the documented fallback if this work slips (see §3 risk note).
+- **[P1]** Presence: show which co-GMs are currently viewing/editing a campaign or element (avatars + live cursors where feasible).
+- **[P1]** Edits stream to all connected members and persist to Mongo; offline/late-join clients reconcile to current state on connect.
+
+### 5.11a Player-facing share view (core to v1)
+- **[P1]** Publish a campaign to a **read-only, tokenized share view** (a clean "world wiki" / handout site) — no player account required.
+- **[P1]** Per-element visibility toggle: GM chooses exactly which NPCs/locations/items/lore are player-visible; **GM-secrets fields never publish**.
+- **[P1]** Themed to match the GM's selected app theme; mobile-friendly for players at the table.
+- **[P1]** Reveal controls: flip an element/handout to "visible" mid-session so it appears live on the share view.
+- **[P2]** Per-player or per-link scoping (different handouts for different players); revoke/rotate a share link.
+- **[P2]** Player-visible quest log / "what we know so far" recap fed from the GM's session notes.
 
 ### 5.12 At-the-table mode ("Run Session")
 - **[P1]** Launch a focused, low-distraction session screen for a chosen campaign (larger text, dark by default).
@@ -245,7 +259,9 @@ _Designed for the "build a one-shot for the family" workflow: generate a ready-t
 - **Campaign** — `name`, `premise`, `tone`, `levelRange`, `ownerId`.
 - **Membership** — `campaignId`, `userId`, `role` (owner|editor|viewer).
 - **Element** (discriminated by `type`: npc|location|encounter|item|note|quest|faction|pc) —
-  `campaignId`, `name`, `body`, `tags[]`, `links[]` (refs to other elements), `data` (type-specific, e.g. stat block).
+  `campaignId`, `name`, `body`, `tags[]`, `links[]` (refs to other elements), `data` (type-specific, e.g. stat block),
+  `playerVisible` (bool, drives the share view), `secrets` (GM-only, never published), `docState` (CRDT doc / version vector for real-time co-editing), `updatedBy`/`version`.
+- **ShareLink** — `campaignId`, `token`, `scope` (whole-campaign | element-set | per-player), `expiresAt`, `revoked` — powers the read-only player-facing share view (§5.11a).
 - **Character sheet** (a `pc`-type Element) — adds `pregen` (bool), `claimantName?` (display name the player typed when claiming — no account), `claimedAt?`, `autofilledFields[]` (which fields were AI/SRD-filled, for the "suggested" badge), `lockedGroups[]` (identity|mechanics|kit|flavor), and a 5e `sheet` object (abilities, HP, AC, skills, proficiencies, equipment, spells).
 - **ClaimLink** — `campaignId`, `characterId?`, `token`, `expiresAt`, `claimantName?` (no-account model: token grants edit access to one pregen sheet; claimant identified by the name they enter, not a user).
 - **Session** — `campaignId`, `date`, `log[]`, `initiativeState`.
@@ -254,11 +270,14 @@ _Designed for the "build a one-shot for the family" workflow: generate a ready-t
 ---
 
 ## 7. Open questions for next pass
-1. Real-time co-editing (websockets) — in scope for v1, or last-write-wins is fine to start?
-2. AI cost model — who pays for generation (per-user API key vs. app-provided)?
-3. SRD data source — bundle a static SRD dataset, or call an open 5e API?
-4. Player-facing share view — how important relative to GM tools?
-5. ~~Player access model for claiming pregen sheets~~ — **Resolved (2026-06-25): no-account claim link.** A player opens a tokenized link, enters a display name, and edits their sheet without signing up. No player accounts in v1. (Optional account-upgrade can be reconsidered later.)
+All resolved 2026-06-25:
+1. ~~Real-time co-editing~~ — **Resolved: in scope for v1.** Live multi-GM co-editing + presence via websockets (Socket.IO) with CRDT/OT merge; last-write-wins + conflict banner is the documented fallback if it slips. _This is the biggest technical lift in v1._ (§2, §3, §5.11)
+2. ~~AI cost / key model~~ — **Resolved: decided at Phase 5.** Keep `ContentGenerator` provider-agnostic; choose app-provided-key vs. BYO-key when AI work begins. (§5.14)
+3. ~~SRD data source~~ — **Resolved: bundle a static SRD dataset**, seeded into Mongo at deploy. No external 5e API dependency. (§2, §5.13)
+4. ~~Player-facing share view~~ — **Resolved: high priority, core to v1.** Read-only tokenized world-wiki/handout view with per-element visibility and GM-secrets never published. (§5.11a)
+5. ~~Player access model for claiming pregen sheets~~ — **Resolved: no-account claim link.** A player opens a tokenized link, enters a display name, and edits their sheet without signing up. No player accounts in v1. (§5.10)
+
+> **Scope reality check:** v1 now includes two heavy systems most prep tools defer — real-time co-editing and a polished player share view. Worth a focused effort estimate before committing dates; the §3 risk note + last-write-wins fallback keep real-time from blocking the rest.
 
 ---
 
