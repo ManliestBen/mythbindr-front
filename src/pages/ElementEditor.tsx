@@ -74,6 +74,14 @@ export default function ElementEditor() {
         </h1>
         <div className="flex items-center gap-3">
           <PresenceAvatars participants={participants} />
+          {!isNew && cfg.type === 'encounter' && (
+            <Link
+              to={`/campaigns/${cid}/session?from=${elementId}`}
+              className="rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-app-bg hover:bg-brand-bright"
+            >
+              Run encounter
+            </Link>
+          )}
           {!isNew && (
             <button
               onClick={onDelete}

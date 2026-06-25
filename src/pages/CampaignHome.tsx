@@ -94,6 +94,12 @@ export default function CampaignHome() {
         </div>
         <div className="flex shrink-0 gap-2">
           <Link
+            to={`/campaigns/${campaign.id}/session`}
+            className="rounded-lg bg-brand px-3 py-1.5 text-sm font-semibold text-app-bg hover:bg-brand-bright"
+          >
+            Run session
+          </Link>
+          <Link
             to={`/campaigns/${campaign.id}/members`}
             className="rounded-lg border border-app-border px-3 py-1.5 text-sm text-fg-muted hover:text-fg"
           >

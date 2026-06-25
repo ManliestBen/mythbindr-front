@@ -13,6 +13,7 @@ import ElementEditor from './pages/ElementEditor';
 import SearchResults from './pages/SearchResults';
 import Members from './pages/Members';
 import AcceptInvite from './pages/AcceptInvite';
+import RunSession from './pages/RunSession';
 import SharePage from './pages/SharePage';
 import Settings from './pages/Settings';
 import Placeholder from './pages/Placeholder';
@@ -58,6 +59,7 @@ export default function App() {
                 <Route path="campaigns" element={<Campaigns />} />
                 <Route path="campaigns/:cid" element={<CampaignHome />} />
                 <Route path="campaigns/:cid/members" element={<Members />} />
+                <Route path="campaigns/:cid/session" element={<RunSession />} />
                 <Route path="campaigns/:cid/search" element={<SearchResults />} />
                 <Route path="invite/:token" element={<AcceptInvite />} />
                 <Route path="campaigns/:cid/:type" element={<ElementList />} />

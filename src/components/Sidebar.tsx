@@ -66,6 +66,10 @@ export default function Sidebar() {
                 {item.label}
               </NavLink>
             ))}
+            <NavLink to={`/campaigns/${activeCampaign.id}/session`} className={linkCls}>
+              <Dot />
+              Run Session
+            </NavLink>
             <NavLink to={`/campaigns/${activeCampaign.id}/members`} className={linkCls}>
               <Dot />
               Members
