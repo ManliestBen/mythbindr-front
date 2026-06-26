@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useElements } from '../../data/elements';
+import { useSrdList } from '../../data/srd';
 import { newCombatant, type Combatant } from '../../data/session';
 
 export default function AddCombatant({ onAdd }: { onAdd: (c: Combatant) => void }) {
@@ -10,6 +11,11 @@ export default function AddCombatant({ onAdd }: { onAdd: (c: Combatant) => void 
   const [init, setInit] = useState('');
   const [hp, setHp] = useState('');
   const [isPlayer, setIsPlayer] = useState(false);
+  const [monsterQ, setMonsterQ] = useState('');
+  const monsters = useSrdList(monsterQ.trim().length >= 2 ? 'monsters' : '', {
+    q: monsterQ.trim(),
+    limit: '8',
+  });
 
   const add = () => {
     if (!name.trim()) return;
@@ -87,6 +93,36 @@ export default function AddCombatant({ onAdd }: { onAdd: (c: Combatant) => void 
           </select>
         </div>
       )}
+
+      {/* Add from the SRD bestiary (prefills HP) */}
+      <div className="relative mt-2">
+        <input
+          className={`${inputCls} w-full`}
+          placeholder="+ Add from bestiary (search monsters)…"
+          value={monsterQ}
+          onChange={(e) => setMonsterQ(e.target.value)}
+        />
+        {monsterQ.trim().length >= 2 && monsters.data && monsters.data.results.length > 0 && (
+          <ul className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-app-border bg-app-surface shadow-lg">
+            {monsters.data.results.map((m) => (
+              <li key={m.slug}>
+                <button
+                  onClick={() => {
+                    onAdd(newCombatant(m.name, 0, m.hp ?? 0));
+                    setMonsterQ('');
+                  }}
+                  className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-sm text-fg-muted hover:bg-app-surface2 hover:text-fg"
+                >
+                  <span className="truncate">{m.name}</span>
+                  <span className="shrink-0 text-[10px] uppercase tracking-wide">
+                    {m.cr != null ? `CR ${m.cr}` : ''} {m.hp ? `· ${m.hp} hp` : ''}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

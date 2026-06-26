@@ -11,6 +11,7 @@ import {
   useUpdateElement,
 } from '../data/elements';
 import ElementForm, { type ElementFormResult } from '../components/ElementForm';
+import XpCalculator from '../components/encounter/XpCalculator';
 
 export default function ElementEditor() {
   const { cid, type: seg, elementId } = useParams();
@@ -136,6 +137,12 @@ export default function ElementEditor() {
           onCancel={() => navigate(backTo)}
         />
       </div>
+
+      {cfg.type === 'encounter' && (
+        <div className="mt-4">
+          <XpCalculator />
+        </div>
+      )}
 
       {!isNew && backlinks.data && backlinks.data.length > 0 && (
         <div className="mt-6 rounded-xl border border-app-border bg-app-surface p-4">
