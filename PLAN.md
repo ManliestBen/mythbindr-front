@@ -385,6 +385,14 @@ dashboard at deploy — Spotify (§5.12a) needs the prod callback URL added, and
   **XP/difficulty calculator** on the encounter editor (party vs monsters → DMG-adjusted XP +
   easy/medium/hard/deadly verdict).
 
-**Next — Phase 5 (AI assist):** admin-only (`requireAdmin`, same gate as Spotify) provider-
-agnostic `ContentGenerator` over the Claude API — generate campaigns/arcs/elements + refine
-actions. See §3 roadmap and §5.14.
+**Phase 5 — AI assist** ✅ (complete)
+- ✅ Admin-only (`requireAdmin`, same gate as Spotify) provider-agnostic `ContentGenerator`
+  with a Claude API impl (`@anthropic-ai/sdk`, `claude-opus-4-8`, adaptive thinking, zod
+  structured outputs). Optional `ANTHROPIC_API_KEY`; routes 503 until configured.
+- ✅ **Generate a whole campaign** from a premise (name + hook + premise + 8–12 linked starter
+  elements, persisted) and **generate a single element** from a brief (prefills the editor).
+  Refine-text endpoint in place for future inline use.
+
+**Roadmap complete** 🎉 — Phases 0–5 are all shipped. Remaining backlog items (`[P1]`/`[P2]`/
+`[Later]` in §5: PC pregen §5.10, quests/factions, the full real-time CRDT polish, export
+§5.15, AI party-gen §5.14) are enhancements on top of a complete v1.
