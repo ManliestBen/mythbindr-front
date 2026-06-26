@@ -14,6 +14,7 @@ import SearchResults from './pages/SearchResults';
 import Members from './pages/Members';
 import AcceptInvite from './pages/AcceptInvite';
 import RunSession from './pages/RunSession';
+import Reference from './pages/Reference';
 import SharePage from './pages/SharePage';
 import Settings from './pages/Settings';
 import Placeholder from './pages/Placeholder';
@@ -64,6 +65,8 @@ export default function App() {
                 <Route path="invite/:token" element={<AcceptInvite />} />
                 <Route path="campaigns/:cid/:type" element={<ElementList />} />
                 <Route path="campaigns/:cid/:type/:elementId" element={<ElementEditor />} />
+                <Route path="reference" element={<Reference />} />
+                <Route path="reference/:category" element={<Reference />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="*" element={<Placeholder />} />
               </Route>

@@ -46,6 +46,10 @@ export default function Sidebar() {
           <Dot />
           Campaigns
         </NavLink>
+        <NavLink to="/reference" className={linkCls}>
+          <Dot />
+          Reference
+        </NavLink>
 
         {activeCampaign && (
           <div className="mt-3">
