@@ -10,8 +10,12 @@ import {
   useElement,
   useUpdateElement,
 } from '../data/elements';
-import ElementForm, { type ElementFormResult } from '../components/ElementForm';
+import ElementForm, {
+  type ElementFormResult,
+  type ElementFormValues,
+} from '../components/ElementForm';
 import XpCalculator from '../components/encounter/XpCalculator';
+import { useGenerateElement } from '../data/ai';
 
 export default function ElementEditor() {
   const { cid, type: seg, elementId } = useParams();
@@ -26,6 +30,10 @@ export default function ElementEditor() {
   const backlinks = useBacklinks(cid ?? '', isNew ? undefined : elementId);
   const participants = usePresence(isNew ? undefined : elementId);
   const { user } = useAuth();
+  const generate = useGenerateElement(cid ?? '');
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [genDefaults, setGenDefaults] = useState<ElementFormValues | undefined>(undefined);
+  const [formKey, setFormKey] = useState(0);
   const [conflict, setConflict] = useState(false);
 
   const backTo = `/campaigns/${cid}/${seg}`;
@@ -107,8 +115,51 @@ export default function ElementEditor() {
         </div>
       )}
 
+      {isNew && user?.isAdmin && (
+        <div className="mt-4 rounded-xl border border-app-border bg-app-surface p-4">
+          <div className="flex items-center gap-2">
+            <input
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              placeholder={`Describe this ${cfg.label.toLowerCase()} for the AI to draft…`}
+              className="flex-1 rounded-lg border border-app-border bg-app-bg px-3 py-2 text-sm outline-none focus:border-brand"
+            />
+            <button
+              onClick={() =>
+                aiPrompt.trim() &&
+                generate.mutate(
+                  { type: cfg.type, prompt: aiPrompt.trim() },
+                  {
+                    onSuccess: (el) => {
+                      setGenDefaults({
+                        name: el.name,
+                        body: el.body,
+                        tagsInput: el.tags.join(', '),
+                        secrets: el.secrets,
+                        playerVisible: false,
+                      });
+                      setFormKey((k) => k + 1);
+                    },
+                  },
+                )
+              }
+              disabled={generate.isPending}
+              className="shrink-0 rounded-lg bg-brand px-3 py-2 text-sm font-semibold text-app-bg hover:bg-brand-bright disabled:opacity-50"
+            >
+              {generate.isPending ? 'Generating…' : '✨ Generate'}
+            </button>
+          </div>
+          {generate.error && (
+            <p className="mt-2 text-xs text-red-400">
+              {generate.error instanceof Error ? generate.error.message : 'Generation failed'}
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="mt-5 rounded-xl border border-app-border bg-app-surface p-5">
         <ElementForm
+          key={`form-${formKey}`}
           campaignId={cid ?? ''}
           dataFields={cfg.dataFields}
           relationships={cfg.relationships}
@@ -131,7 +182,7 @@ export default function ElementEditor() {
                     .filter((l) => l.source === 'relationship')
                     .map((l) => ({ targetId: l.targetId, relType: l.relType })),
                 }
-              : undefined
+              : genDefaults
           }
           onSubmit={onSubmit}
           onCancel={() => navigate(backTo)}
