@@ -375,6 +375,16 @@ dashboard at deploy — Spotify (§5.12a) needs the prod callback URL added, and
 - ✅ **In-session Spotify player** (admin-only Web Playback SDK): now-playing + transport +
   one-tap **mood slots** (`Campaign.moodSlots`) with a playlist-picker editor.
 
-**Next — Phase 4 (5e SRD rules-awareness):** bundle a static SRD dataset (monsters/spells/
-conditions/magic-items), seed into Mongo at deploy, reference UIs, drop-monster-into-encounter,
-and encounter XP math. See §3 roadmap and §5.13.
+**Phase 4 — 5e SRD rules-awareness** ✅ (complete)
+- ✅ **6,591 reference resources** seeded from Open5e v1 into a generic `SrdResource`
+  collection (3,207 monsters, 1,435 spells, 1,618 magic items, + weapons/armor/feats/races/
+  classes/backgrounds/planes/rules-sections/all 15 conditions). `npm run seed:srd` re-pulls.
+- ✅ Read API `/api/srd` (categories+counts, filtered list, full detail) + a **Reference
+  browser** (search/filter, full monster stat blocks, spell cards, rules text).
+- ✅ **Bestiary integration**: Run Session "Add from bestiary" prefills combatant HP; an
+  **XP/difficulty calculator** on the encounter editor (party vs monsters → DMG-adjusted XP +
+  easy/medium/hard/deadly verdict).
+
+**Next — Phase 5 (AI assist):** admin-only (`requireAdmin`, same gate as Spotify) provider-
+agnostic `ContentGenerator` over the Claude API — generate campaigns/arcs/elements + refine
+actions. See §3 roadmap and §5.14.
